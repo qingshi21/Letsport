@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>场馆预约 - 体育场馆预约系统</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <i class="fas fa-basketball-ball"></i>
+                <span>体育场馆预约</span>
+            </div>
+            <div class="nav-menu">
+                <a href="index.html" class="nav-link">首页</a>
+                <a href="venues.html" class="nav-link active">场馆预约</a>
+                <a href="profile.html" class="nav-link">我的</a>
+                <a href="#login" class="nav-link login-btn">登录/注册</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容区域 -->
+    <main>
+        <!-- 搜索和筛选区域 -->
+        <section class="search-section">
+            <div class="container">
+                <h2>场馆预约</h2>
+                <div class="search-container">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchInput" placeholder="搜索场馆名称或地址...">
+                        <button class="search-btn">搜索</button>
+                    </div>
+                    
+                    <div class="filter-container">
+                        <div class="filter-group">
+                            <label>场馆类型</label>
+                            <select id="sportType">
+                                <option value="">全部类型</option>
+                                <option value="basketball">篮球</option>
+                                <option value="badminton">羽毛球</option>
+                                <option value="tennis">网球</option>
+                                <option value="swimming">游泳</option>
+                                <option value="football">足球</option>
+                                <option value="volleyball">排球</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label>距离范围</label>
+                            <select id="distance">
+                                <option value="">全部距离</option>
+                                <option value="1">1公里内</option>
+                                <option value="3">3公里内</option>
+                                <option value="5">5公里内</option>
+                                <option value="10">10公里内</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label>价格范围</label>
+                            <select id="price">
+                                <option value="">全部价格</option>
+                                <option value="0-30">30元以下</option>
+                                <option value="30-50">30-50元</option>
+                                <option value="50-100">50-100元</option>
+                                <option value="100+">100元以上</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label>营业时间</label>
+                            <select id="time">
+                                <option value="">全部时间</option>
+                                <option value="morning">上午(6:00-12:00)</option>
+                                <option value="afternoon">下午(12:00-18:00)</option>
+                                <option value="evening">晚上(18:00-22:00)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 场馆列表区域 -->
+        <section class="venues-section">
+            <div class="container">
+                <div class="venues-header">
+                    <h3>场馆列表</h3>
+                    <div class="sort-options">
+                        <span>排序：</span>
+                        <button class="sort-btn active" data-sort="distance">距离最近</button>
+                        <button class="sort-btn" data-sort="price">价格最低</button>
+                        <button class="sort-btn" data-sort="rating">评分最高</button>
+                    </div>
+                </div>
+                
+                <div class="venues-grid">
+                    <!-- 篮球场 -->
+                    <div class="venue-card" data-sport="basketball" data-distance="0.5" data-price="50" data-rating="4.8">
+                        <div class="venue-image">
+                            <i class="fas fa-basketball-ball"></i>
+                        </div>
+                        <div class="venue-info">
+                            <h3>室内篮球场</h3>
+                            <p class="venue-description">标准篮球场，木地板，空调开放，专业照明</p>
+                            <div class="venue-details">
+                                <span><i class="fas fa-map-marker-alt"></i> 体育馆A区 (0.5km)</span>
+                                <span><i class="fas fa-clock"></i> 08:00-22:00</span>
+                                <span><i class="fas fa-yen-sign"></i> 50元/小时</span>
+                                <span><i class="fas fa-star"></i> 4.8分</span>
+                            </div>
+                            <button class="book-btn" onclick="openBookingModal('室内篮球场')">立即预约</button>
+                        </div>
+                    </div>
+
+                    <!-- 羽毛球场 -->
+                    <div class="venue-card" data-sport="badminton" data-distance="1.2" data-price="30" data-rating="4.9">
+                        <div class="venue-image">
+                            <i class="fas fa-table-tennis"></i>
+                        </div>
+                        <div class="venue-info">
+                            <h3>羽毛球场</h3>
+                            <p class="venue-description">专业羽毛球场地，防滑地胶，空调开放</p>
+                            <div class="venue-details">
+                                <span><i class="fas fa-map-marker-alt"></i> 体育馆B区 (1.2km)</span>
+                                <span><i class="fas fa-clock"></i> 08:00-22:00</span>
+                                <span><i class="fas fa-yen-sign"></i> 30元/小时</span>
+                                <span><i class="fas fa-star"></i> 4.9分</span>
+                            </div>
+                            <button class="book-btn" onclick="openBookingModal('羽毛球场')">立即预约</button>
+                        </div>
+                    </div>
+
+                    <!-- 网球场 -->
+                    <div class="venue-card" data-sport="tennis" data-distance="2.1" data-price="40" data-rating="4.6">
+                        <div class="venue-image">
+                            <i class="fas fa-table-tennis"></i>
+                        </div>
+                        <div class="venue-info">
+                            <h3>网球场</h3>
+                            <p class="venue-description">室外网球场，专业塑胶地面，围网设施</p>
+                            <div class="venue-details">
+                                <span><i class="fas fa-map-marker-alt"></i> 室外场地 (2.1km)</span>
+                                <span><i class="fas fa-clock"></i> 06:00-22:00</span>
+                                <span><i class="fas fa-yen-sign"></i> 40元/小时</span>
+                                <span><i class="fas fa-star"></i> 4.6分</span>
+                            </div>
+                            <button class="book-btn" onclick="openBookingModal('网球场')">立即预约</button>
+                        </div>
+                    </div>
+
+                    <!-- 游泳池 -->
+                    <div class="venue-card" data-sport="swimming" data-distance="1.8" data-price="35" data-rating="4.7">
+                        <div class="venue-image">
+                            <i class="fas fa-swimming-pool"></i>
+                        </div>
+                        <div class="venue-info">
+                            <h3>游泳池</h3>
+                            <p class="venue-description">标准泳池，恒温控制，水质优良，更衣室</p>
+                            <div class="venue-details">
+                                <span><i class="fas fa-map-marker-alt"></i> 游泳馆 (1.8km)</span>
+                                <span><i class="fas fa-clock"></i> 06:00-21:00</span>
+                                <span><i class="fas fa-yen-sign"></i> 35元/次</span>
+                                <span><i class="fas fa-star"></i> 4.7分</span>
+                            </div>
+                            <button class="book-btn" onclick="openBookingModal('游泳池')">立即预约</button>
+                        </div>
+                    </div>
+
+                    <!-- 足球场 -->
+                    <div class="venue-card" data-sport="football" data-distance="3.5" data-price="80" data-rating="4.5">
+                        <div class="venue-image">
+                            <i class="fas fa-futbol"></i>
+                        </div>
+                        <div class="venue-info">
+                            <h3>足球场</h3>
+                            <p class="venue-description">标准11人制足球场，天然草坪，照明设施</p>
+                            <div class="venue-details">
+                                <span><i class="fas fa-map-marker-alt"></i> 体育公园 (3.5km)</span>
+                                <span><i class="fas fa-clock"></i> 全天开放</span>
+                                <span><i class="fas fa-yen-sign"></i> 80元/小时</span>
+                                <span><i class="fas fa-star"></i> 4.5分</span>
+                            </div>
+                            <button class="book-btn" onclick="openBookingModal('足球场')">立即预约</button>
+                        </div>
+                    </div>
+
+                    <!-- 排球场 -->
+                    <div class="venue-card" data-sport="volleyball" data-distance="2.8" data-price="45" data-rating="4.4">
+                        <div class="venue-image">
+                            <i class="fas fa-volleyball-ball"></i>
+                        </div>
+                        <div class="venue-info">
+                            <h3>排球场</h3>
+                            <p class="venue-description">室内排球场，木地板，标准网高，空调开放</p>
+                            <div class="venue-details">
+                                <span><i class="fas fa-map-marker-alt"></i> 体育馆C区 (2.8km)</span>
+                                <span><i class="fas fa-clock"></i> 09:00-21:00</span>
+                                <span><i class="fas fa-yen-sign"></i> 45元/小时</span>
+                                <span><i class="fas fa-star"></i> 4.4分</span>
+                            </div>
+                            <button class="book-btn" onclick="openBookingModal('排球场')">立即预约</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 预约弹窗 -->
+    <div id="bookingModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>预约场馆</h2>
+            <form id="bookingForm">
+                <div class="form-group">
+                    <label for="venueName">场馆名称</label>
+                    <input type="text" id="venueName" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="bookingDate">预约日期</label>
+                    <input type="date" id="bookingDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="startTime">开始时间</label>
+                    <input type="time" id="startTime" required>
+                </div>
+                <div class="form-group">
+                    <label for="endTime">结束时间</label>
+                    <input type="time" id="endTime" required>
+                </div>
+                <div class="form-group">
+                    <label for="userName">预约人姓名</label>
+                    <input type="text" id="userName" required>
+                </div>
+                <div class="form-group">
+                    <label for="userPhone">联系电话</label>
+                    <input type="tel" id="userPhone" required>
+                </div>
+                <button type="submit" class="submit-btn">确认预约</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 登录弹窗 -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>用户登录</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">用户名</label>
+                    <input type="text" id="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">密码</label>
+                    <input type="password" id="password" required>
+                </div>
+                <button type="submit" class="submit-btn">登录</button>
+                <p class="register-link">还没有账号？<a href="#" onclick="showRegister()">立即注册</a></p>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html> 
