@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录状态调试</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0; 
+            padding: 20px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container { 
+            max-width: 600px; 
+            margin: 0 auto; 
+            background: white; 
+            border-radius: 15px; 
+            padding: 30px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        h1 { 
+            text-align: center; 
+            color: #333; 
+            margin-bottom: 30px;
+        }
+        .status-box {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #3498db;
+        }
+        .btn {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            transition: transform 0.2s;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        .btn-success {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+        }
+        .btn-danger {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>登录状态调试</h1>
+        
+        <div class="status-box">
+            <h3>当前状态</h3>
+            <div id="current-status">检查中...</div>
+        </div>
+        
+        <div>
+            <button class="btn btn-success" onclick="checkLoginStatus()">检查登录状态</button>
+            <button class="btn" onclick="testLogin()">测试登录</button>
+            <button class="btn btn-danger" onclick="clearToken()">清除Token</button>
+            <button class="btn" onclick="testProfileAPI()">测试用户资料API</button>
+        </div>
+        
+        <div id="result" class="result" style="display: none;"></div>
+    </div>
+
+    <script src="api.js"></script>
+    <script>
+        // 页面加载时自动检查状态
+        document.addEventListener('DOMContentLoaded', function() {
+            checkLoginStatus();
+        });
+        
+        function checkLoginStatus() {
+            const token = localStorage.getItem('token');
+            const username = localStorage.getItem('username');
+            
+            let status = '';
+            status += `Token: ${token ? '存在' : '不存在'}\n`;
+            if (token) {
+                status += `Token长度: ${token.length}\n`;
+                status += `Token前20字符: ${token.substring(0, 20)}...\n`;
+            }
+            status += `用户名: ${username || '未设置'}\n`;
+            
+            document.getElementById('current-status').textContent = status;
+            showResult('登录状态已检查', 'info');
+        }
+        
+        async function testLogin() {
+            try {
+                showResult('正在测试登录...', 'info');
+                
+                const response = await fetch('http://localhost:3000/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: 'lovepoems',
+                        password: '123456'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('username', 'lovepoems');
+                    showResult('登录成功！\nToken已保存', 'success');
+                    setTimeout(checkLoginStatus, 1000);
+                } else {
+                    showResult('登录失败: ' + data.message, 'error');
+                }
+                
+            } catch (error) {
+                showResult('登录测试失败: ' + error.message, 'error');
+            }
+        }
+        
+        function clearToken() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+            showResult('Token已清除', 'info');
+            setTimeout(checkLoginStatus, 1000);
+        }
+        
+        async function testProfileAPI() {
+            try {
+                showResult('正在测试用户资料API...', 'info');
+                
+                const response = await API.users.getUserProfile();
+                const user = response.data;
+                
+                let result = '用户资料获取成功:\n';
+                result += `用户名: ${user.username}\n`;
+                result += `显示名称: ${user.display_name || '未设置'}\n`;
+                result += `邮箱: ${user.email || '未设置'}\n`;
+                result += `创建时间: ${user.created_at}\n`;
+                
+                showResult(result, 'success');
+                
+            } catch (error) {
+                showResult('用户资料API测试失败: ' + error.message, 'error');
+            }
+        }
+        
+        function showResult(message, type) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = message;
+            resultDiv.className = 'result ' + type;
+            resultDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html> 
