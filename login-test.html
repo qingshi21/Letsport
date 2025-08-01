@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录测试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .login-section {
+            background: white;
+            padding: 30px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background-color: #e7f3ff;
+            color: #0056b3;
+            border: 1px solid #b3d9ff;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .user-info {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+            border-left: 4px solid #28a745;
+        }
+        .logout-btn {
+            background-color: #dc3545;
+        }
+        .logout-btn:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <h1>登录测试页面</h1>
+    
+    <div class="login-section">
+        <h2>用户登录</h2>
+        <div id="login-status" class="status info">请输入用户名和密码进行登录</div>
+        
+        <form id="login-form">
+            <input type="text" id="username" placeholder="用户名" required>
+            <input type="password" id="password" placeholder="密码" required>
+            <button type="submit">登录</button>
+        </form>
+        
+        <div id="user-info" style="display: none;">
+            <div class="user-info">
+                <h3>当前登录用户</h3>
+                <div id="current-user"></div>
+                <button class="logout-btn" onclick="logout()">退出登录</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="login-section">
+        <h2>测试说明</h2>
+        <p><strong>步骤：</strong></p>
+        <ol>
+            <li>在上方输入用户名和密码进行登录</li>
+            <li>登录成功后，访问 <a href="test-profile-fix.html" target="_blank">个人中心API测试页面</a></li>
+            <li>或者直接访问 <a href="profile.html" target="_blank">个人中心页面</a></li>
+        </ol>
+        
+        <p><strong>测试账号：</strong></p>
+        <ul>
+            <li>用户名：<code>testuser</code> 密码：<code>password123</code></li>
+            <li>用户名：<code>admin</code> 密码：<code>admin123</code></li>
+        </ul>
+    </div>
+
+    <script>
+        // 检查登录状态
+        function checkLoginStatus() {
+            const token = localStorage.getItem('token');
+            const userInfo = localStorage.getItem('userInfo');
+            
+            if (token && userInfo) {
+                try {
+                    const user = JSON.parse(userInfo);
+                    document.getElementById('login-form').style.display = 'none';
+                    document.getElementById('user-info').style.display = 'block';
+                    document.getElementById('current-user').innerHTML = `
+                        <p><strong>用户名:</strong> ${user.username}</p>
+                        <p><strong>邮箱:</strong> ${user.email}</p>
+                        <p><strong>Token:</strong> ${token.substring(0, 20)}...</p>
+                    `;
+                    document.getElementById('login-status').className = 'status success';
+                    document.getElementById('login-status').textContent = '✅ 已登录';
+                } catch (error) {
+                    console.error('解析用户信息失败:', error);
+                    logout();
+                }
+            } else {
+                document.getElementById('login-form').style.display = 'block';
+                document.getElementById('user-info').style.display = 'none';
+                document.getElementById('login-status').className = 'status info';
+                document.getElementById('login-status').textContent = '请输入用户名和密码进行登录';
+            }
+        }
+        
+        // 登录
+        async function login(username, password) {
+            try {
+                const response = await fetch('http://localhost:3000/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // 保存token和用户信息
+                    localStorage.setItem('token', data.data.token);
+                    localStorage.setItem('userInfo', JSON.stringify(data.data.user));
+                    
+                    document.getElementById('login-status').className = 'status success';
+                    document.getElementById('login-status').textContent = '✅ 登录成功！';
+                    
+                    checkLoginStatus();
+                } else {
+                    throw new Error(data.message || '登录失败');
+                }
+            } catch (error) {
+                document.getElementById('login-status').className = 'status error';
+                document.getElementById('login-status').textContent = `❌ 登录失败: ${error.message}`;
+            }
+        }
+        
+        // 退出登录
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('userInfo');
+            checkLoginStatus();
+        }
+        
+        // 表单提交事件
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (!username || !password) {
+                document.getElementById('login-status').className = 'status error';
+                document.getElementById('login-status').textContent = '❌ 请输入用户名和密码';
+                return;
+            }
+            
+            login(username, password);
+        });
+        
+        // 页面加载时检查登录状态
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('检查登录状态...');
+            checkLoginStatus();
+        });
+    </script>
+</body>
+</html> 

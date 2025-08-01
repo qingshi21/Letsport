@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API测试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>API连接测试</h1>
+    
+    <div class="test-section">
+        <h2>1. 基础连接测试</h2>
+        <button onclick="testBasicConnection()">测试基础连接</button>
+        <div id="basic-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. 场馆API测试</h2>
+        <button onclick="testVenuesAPI()">测试场馆API</button>
+        <div id="venues-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. 认证API测试</h2>
+        <button onclick="testAuthAPI()">测试认证API</button>
+        <div id="auth-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>4. 网络诊断</h2>
+        <button onclick="testNetwork()">网络诊断</button>
+        <div id="network-result"></div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:3000/api';
+        
+        async function testBasicConnection() {
+            const resultDiv = document.getElementById('basic-result');
+            resultDiv.innerHTML = '<p>测试中...</p>';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <p class="success">✅ 连接成功！</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <p class="error">❌ 连接失败</p>
+                        <pre>状态码: ${response.status}</pre>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <p class="error">❌ 连接错误</p>
+                    <pre>${error.message}</pre>
+                `;
+            }
+        }
+        
+        async function testVenuesAPI() {
+            const resultDiv = document.getElementById('venues-result');
+            resultDiv.innerHTML = '<p>测试中...</p>';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/venues`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <p class="success">✅ 场馆API正常！</p>
+                        <p>场馆数量: ${data.data.venues.length}</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <p class="error">❌ 场馆API失败</p>
+                        <pre>状态码: ${response.status}</pre>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <p class="error">❌ 场馆API错误</p>
+                    <pre>${error.message}</pre>
+                `;
+            }
+        }
+        
+        async function testAuthAPI() {
+            const resultDiv = document.getElementById('auth-result');
+            resultDiv.innerHTML = '<p>测试中...</p>';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/me`, {
+                    headers: {
+                        'Authorization': 'Bearer invalid-token'
+                    }
+                });
+                const data = await response.json();
+                
+                if (response.status === 401) {
+                    resultDiv.innerHTML = `
+                        <p class="success">✅ 认证API正常（正确返回401）</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <p class="error">❌ 认证API异常</p>
+                        <pre>状态码: ${response.status}</pre>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <p class="error">❌ 认证API错误</p>
+                    <pre>${error.message}</pre>
+                `;
+            }
+        }
+        
+        async function testNetwork() {
+            const resultDiv = document.getElementById('network-result');
+            resultDiv.innerHTML = '<p>诊断中...</p>';
+            
+            const results = [];
+            
+            // 测试端口3000是否可访问
+            try {
+                const response = await fetch('http://localhost:3000/api/health');
+                results.push(`✅ 端口3000: 可访问 (${response.status})`);
+            } catch (error) {
+                results.push(`❌ 端口3000: 不可访问 (${error.message})`);
+            }
+            
+            // 测试端口8080是否可访问
+            try {
+                const response = await fetch('http://localhost:8080');
+                results.push(`✅ 端口8080: 可访问 (${response.status})`);
+            } catch (error) {
+                results.push(`❌ 端口8080: 不可访问 (${error.message})`);
+            }
+            
+            // 测试CORS
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`, {
+                    method: 'OPTIONS'
+                });
+                results.push(`✅ CORS: 正常`);
+            } catch (error) {
+                results.push(`❌ CORS: 错误 (${error.message})`);
+            }
+            
+            resultDiv.innerHTML = `
+                <h3>网络诊断结果:</h3>
+                <ul>
+                    ${results.map(result => `<li>${result}</li>`).join('')}
+                </ul>
+            `;
+        }
+    </script>
+</body>
+</html> 

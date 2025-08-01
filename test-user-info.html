@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户信息测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .result { margin: 10px 0; padding: 10px; background: #f5f5f5; border-radius: 3px; }
+        .error { background: #ffe6e6; color: #d63031; }
+        .success { background: #e6ffe6; color: #00b894; }
+        button { padding: 10px 20px; margin: 5px; background: #3498db; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #2980b9; }
+    </style>
+</head>
+<body>
+    <h1>用户信息测试</h1>
+    
+    <div class="test-section">
+        <h2>登录状态检查</h2>
+        <button onclick="checkLoginStatus()">检查登录状态</button>
+        <div id="login-status" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>用户资料获取</h2>
+        <button onclick="getUserProfile()">获取用户资料</button>
+        <div id="user-profile" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>当前用户信息</h2>
+        <button onclick="getCurrentUser()">获取当前用户</button>
+        <div id="current-user" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>显示名称测试</h2>
+        <input type="text" id="test-display-name" placeholder="输入新的显示名称">
+        <button onclick="updateDisplayName()">更新显示名称</button>
+        <div id="display-name-result" class="result"></div>
+    </div>
+
+    <script src="api.js"></script>
+    <script>
+        async function checkLoginStatus() {
+            const statusDiv = document.getElementById('login-status');
+            statusDiv.innerHTML = '检查中...';
+            
+            try {
+                const isLoggedIn = API.utils.isLoggedIn();
+                const token = API.utils.getToken();
+                
+                statusDiv.innerHTML = `
+                    <div class="success">
+                        <strong>登录状态:</strong> ${isLoggedIn ? '已登录' : '未登录'}<br>
+                        <strong>Token:</strong> ${token ? token.substring(0, 20) + '...' : '无'}
+                    </div>
+                `;
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="error">检查失败: ${error.message}</div>`;
+            }
+        }
+        
+        async function getUserProfile() {
+            const profileDiv = document.getElementById('user-profile');
+            profileDiv.innerHTML = '获取中...';
+            
+            try {
+                const response = await API.users.getUserProfile();
+                const user = response.data;
+                
+                profileDiv.innerHTML = `
+                    <div class="success">
+                        <strong>用户资料:</strong><br>
+                        <strong>用户名:</strong> ${user.username || '未设置'}<br>
+                        <strong>显示名称:</strong> ${user.display_name || '未设置'}<br>
+                        <strong>邮箱:</strong> ${user.email || '未设置'}<br>
+                        <strong>完整数据:</strong> ${JSON.stringify(user, null, 2)}
+                    </div>
+                `;
+            } catch (error) {
+                profileDiv.innerHTML = `<div class="error">获取失败: ${error.message}</div>`;
+            }
+        }
+        
+        async function getCurrentUser() {
+            const userDiv = document.getElementById('current-user');
+            userDiv.innerHTML = '获取中...';
+            
+            try {
+                const response = await API.auth.getCurrentUser();
+                const user = response.data;
+                
+                userDiv.innerHTML = `
+                    <div class="success">
+                        <strong>当前用户:</strong><br>
+                        <strong>用户名:</strong> ${user.username || '未设置'}<br>
+                        <strong>显示名称:</strong> ${user.display_name || '未设置'}<br>
+                        <strong>完整数据:</strong> ${JSON.stringify(user, null, 2)}
+                    </div>
+                `;
+            } catch (error) {
+                userDiv.innerHTML = `<div class="error">获取失败: ${error.message}</div>`;
+            }
+        }
+        
+        async function updateDisplayName() {
+            const input = document.getElementById('test-display-name');
+            const newName = input.value.trim();
+            const resultDiv = document.getElementById('display-name-result');
+            
+            if (!newName) {
+                resultDiv.innerHTML = '<div class="error">请输入显示名称</div>';
+                return;
+            }
+            
+            resultDiv.innerHTML = '更新中...';
+            
+            try {
+                await API.users.updateUserProfile({
+                    display_name: newName
+                });
+                
+                resultDiv.innerHTML = '<div class="success">显示名称更新成功！</div>';
+                
+                // 重新获取用户资料
+                await getUserProfile();
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">更新失败: ${error.message}</div>`;
+            }
+        }
+        
+        // 页面加载时自动检查登录状态
+        document.addEventListener('DOMContentLoaded', function() {
+            checkLoginStatus();
+        });
+    </script>
+</body>
+</html> 
