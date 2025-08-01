@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>页面加载测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .loading {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>页面加载测试</h1>
+    
+    <div class="test-section">
+        <h2>服务器连接测试</h2>
+        <div id="server-status" class="status loading">正在测试服务器连接...</div>
+        <button onclick="testServerConnection()">重新测试服务器连接</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>JavaScript文件加载测试</h2>
+        <div id="js-status" class="status loading">正在测试JavaScript文件...</div>
+        <button onclick="testJavaScriptFiles()">重新测试JavaScript文件</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>API连接测试</h2>
+        <div id="api-status" class="status loading">正在测试API连接...</div>
+        <button onclick="testAPIConnection()">重新测试API连接</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>页面导航测试</h2>
+        <div id="nav-status" class="status loading">正在测试页面导航...</div>
+        <button onclick="testPageNavigation()">重新测试页面导航</button>
+    </div>
+
+    <script>
+        // 测试服务器连接
+        async function testServerConnection() {
+            const statusDiv = document.getElementById('server-status');
+            statusDiv.className = 'status loading';
+            statusDiv.textContent = '正在测试服务器连接...';
+            
+            try {
+                const response = await fetch('http://localhost:8080/');
+                if (response.ok) {
+                    statusDiv.className = 'status success';
+                    statusDiv.textContent = '✅ 前端服务器连接正常 (端口8080)';
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = `❌ 前端服务器连接失败: ${error.message}`;
+            }
+        }
+        
+        // 测试JavaScript文件加载
+        async function testJavaScriptFiles() {
+            const statusDiv = document.getElementById('js-status');
+            statusDiv.className = 'status loading';
+            statusDiv.textContent = '正在测试JavaScript文件...';
+            
+            const files = ['script.js', 'profile-page.js', 'venues-page.js'];
+            let successCount = 0;
+            let errorCount = 0;
+            
+            for (const file of files) {
+                try {
+                    const response = await fetch(`http://localhost:8080/${file}`);
+                    if (response.ok) {
+                        const content = await response.text();
+                        if (content.includes('//') && content.length > 100) {
+                            successCount++;
+                        } else {
+                            errorCount++;
+                        }
+                    } else {
+                        errorCount++;
+                    }
+                } catch (error) {
+                    errorCount++;
+                }
+            }
+            
+            if (errorCount === 0) {
+                statusDiv.className = 'status success';
+                statusDiv.textContent = `✅ 所有JavaScript文件加载正常 (${successCount}/${files.length})`;
+            } else {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = `❌ JavaScript文件加载异常 (成功: ${successCount}, 失败: ${errorCount})`;
+            }
+        }
+        
+        // 测试API连接
+        async function testAPIConnection() {
+            const statusDiv = document.getElementById('api-status');
+            statusDiv.className = 'status loading';
+            statusDiv.textContent = '正在测试API连接...';
+            
+            try {
+                const response = await fetch('http://localhost:3000/api/health');
+                if (response.ok) {
+                    const data = await response.json();
+                    statusDiv.className = 'status success';
+                    statusDiv.textContent = `✅ 后端API连接正常 (端口3000) - 状态: ${data.status}`;
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = `❌ 后端API连接失败: ${error.message}`;
+            }
+        }
+        
+        // 测试页面导航
+        async function testPageNavigation() {
+            const statusDiv = document.getElementById('nav-status');
+            statusDiv.className = 'status loading';
+            statusDiv.textContent = '正在测试页面导航...';
+            
+            const pages = ['index.html', 'profile.html', 'venues.html'];
+            let successCount = 0;
+            let errorCount = 0;
+            
+            for (const page of pages) {
+                try {
+                    const response = await fetch(`http://localhost:8080/${page}`);
+                    if (response.ok) {
+                        const content = await response.text();
+                        if (content.includes('<!DOCTYPE html>') && content.includes('体育场馆预约系统')) {
+                            successCount++;
+                        } else {
+                            errorCount++;
+                        }
+                    } else {
+                        errorCount++;
+                    }
+                } catch (error) {
+                    errorCount++;
+                }
+            }
+            
+            if (errorCount === 0) {
+                statusDiv.className = 'status success';
+                statusDiv.textContent = `✅ 所有页面导航正常 (${successCount}/${pages.length})`;
+            } else {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = `❌ 页面导航异常 (成功: ${successCount}, 失败: ${errorCount})`;
+            }
+        }
+        
+        // 页面加载时自动运行所有测试
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('开始页面加载测试...');
+            testServerConnection();
+            testJavaScriptFiles();
+            testAPIConnection();
+            testPageNavigation();
+        });
+    </script>
+</body>
+</html> 

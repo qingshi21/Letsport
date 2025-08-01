@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人中心API修复测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .loading {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .data-item {
+            background: #f8f9fa;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border-left: 4px solid #007bff;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .note {
+            background-color: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>个人中心API修复测试</h1>
+    
+    <div class="note">
+        <strong>注意：</strong>这些API需要用户登录才能访问。如果测试失败，可能是因为没有登录或token已过期。
+    </div>
+    
+    <div class="test-section">
+        <h2>用户资料加载测试</h2>
+        <div id="profile-status" class="status loading">正在测试用户资料加载...</div>
+        <div id="profile-result"></div>
+        <button onclick="testUserProfileAPI()">重新测试用户资料API</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>用户统计数据加载测试</h2>
+        <div id="stats-status" class="status loading">正在测试用户统计数据加载...</div>
+        <div id="stats-result"></div>
+        <button onclick="testUserStatsAPI()">重新测试用户统计API</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>预约历史加载测试</h2>
+        <div id="bookings-status" class="status loading">正在测试预约历史加载...</div>
+        <div id="bookings-result"></div>
+        <button onclick="testUserBookingsAPI()">重新测试预约历史API</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>评价历史加载测试</h2>
+        <div id="reviews-status" class="status loading">正在测试评价历史加载...</div>
+        <div id="reviews-result"></div>
+        <button onclick="testUserReviewsAPI()">重新测试评价历史API</button>
+    </div>
+
+    <script>
+        // 测试用户资料API
+        async function testUserProfileAPI() {
+            const statusDiv = document.getElementById('profile-status');
+            const resultDiv = document.getElementById('profile-result');
+            
+            statusDiv.className = 'status loading';
+            statusDiv.textContent = '正在测试用户资料加载...';
+            resultDiv.innerHTML = '';
+            
+            try {
+                const response = await fetch('http://localhost:3000/api/users/profile', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        statusDiv.className = 'status success';
+                        statusDiv.textContent = '✅ 用户资料加载成功';
+                        
+                        const user = data.data;
+                        resultDiv.innerHTML = `
+                            <div class="data-item">
+                                <strong>用户名:</strong> ${user.username}<br>
+                                <strong>邮箱:</strong> ${user.email}<br>
+                                <strong>会员等级:</strong> ${user.membership_level || '普通会员'}
+                            </div>
+                        `;
+                    } else {
+                        throw new Error(data.message || 'API返回错误');
+                    }
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = `❌ 用户资料加载失败: ${error.message}`;
+                resultDiv.innerHTML = `<p>错误详情: ${error.message}</p>`;
+            }
+        }
+        
+        // 测试用户统计API
+        async function testUserStatsAPI() {
+            const statusDiv = document.getElementById('stats-status');
+            const resultDiv = document.getElementById('stats-result');
+            
+            statusDiv.className = 'status loading';
+            statusDiv.textContent = '正在测试用户统计数据加载...';
+            resultDiv.innerHTML = '';
+            
+            try {
+                const response = await fetch('http://localhost:3000/api/users/stats', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        statusDiv.className = 'status success';
+                        statusDiv.textContent = '✅ 用户统计数据加载成功';
+                        
+                        const stats = data.data;
+                        resultDiv.innerHTML = `
+                            <div class="data-item">
+                                <strong>总预约数:</strong> ${stats.total_bookings || 0}<br>
+                                <strong>总消费:</strong> ${stats.total_spent || 0}元<br>
+                                <strong>总评价数:</strong> ${stats.total_reviews || 0}
+                            </div>
+                        `;
+                    } else {
+                        throw new Error(data.message || 'API返回错误');
+                    }
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = `❌ 用户统计数据加载失败: ${error.message}`;
+                resultDiv.innerHTML = `<p>错误详情: ${error.message}</p>`;
+            }
+        }
+        
+        // 测试预约历史API
+        async function testUserBookingsAPI() {
+            const statusDiv = document.getElementById('bookings-status');
+            const resultDiv = document.getElementById('bookings-result');
+            
+            statusDiv.className = 'status loading';
+            statusDiv.textContent = '正在测试预约历史加载...';
+            resultDiv.innerHTML = '';
+            
+            try {
+                const response = await fetch('http://localhost:3000/api/bookings', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        statusDiv.className = 'status success';
+                        statusDiv.textContent = '✅ 预约历史加载成功';
+                        
+                        // 检查数据格式
+                        let bookings;
+                        if (data.data && data.data.bookings) {
+                            bookings = data.data.bookings;
+                            resultDiv.innerHTML += '<p><strong>数据格式:</strong> data.bookings</p>';
+                        } else if (data.data && Array.isArray(data.data)) {
+                            bookings = data.data;
+                            resultDiv.innerHTML += '<p><strong>数据格式:</strong> data (数组)</p>';
+                        } else {
+                            bookings = data.data;
+                            resultDiv.innerHTML += '<p><strong>数据格式:</strong> data (其他)</p>';
+                        }
+                        
+                        if (bookings && bookings.length > 0) {
+                            resultDiv.innerHTML += `<p><strong>预约数量:</strong> ${bookings.length}</p>`;
+                            bookings.slice(0, 2).forEach((booking, index) => {
+                                resultDiv.innerHTML += `
+                                    <div class="data-item">
+                                        <strong>预约 ${index + 1}:</strong> ${booking.venue_name}<br>
+                                        <strong>状态:</strong> ${booking.status}<br>
+                                        <strong>价格:</strong> ${booking.final_price}元
+                                    </div>
+                                `;
+                            });
+                        } else {
+                            resultDiv.innerHTML += '<p>没有预约记录</p>';
+                        }
+                    } else {
+                        throw new Error(data.message || 'API返回错误');
+                    }
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = `❌ 预约历史加载失败: ${error.message}`;
+                resultDiv.innerHTML = `<p>错误详情: ${error.message}</p>`;
+            }
+        }
+        
+        // 测试评价历史API
+        async function testUserReviewsAPI() {
+            const statusDiv = document.getElementById('reviews-status');
+            const resultDiv = document.getElementById('reviews-result');
+            
+            statusDiv.className = 'status loading';
+            statusDiv.textContent = '正在测试评价历史加载...';
+            resultDiv.innerHTML = '';
+            
+            try {
+                const response = await fetch('http://localhost:3000/api/reviews/user', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        statusDiv.className = 'status success';
+                        statusDiv.textContent = '✅ 评价历史加载成功';
+                        
+                        // 检查数据格式
+                        let reviews;
+                        if (data.data && data.data.reviews) {
+                            reviews = data.data.reviews;
+                            resultDiv.innerHTML += '<p><strong>数据格式:</strong> data.reviews</p>';
+                        } else if (data.data && Array.isArray(data.data)) {
+                            reviews = data.data;
+                            resultDiv.innerHTML += '<p><strong>数据格式:</strong> data (数组)</p>';
+                        } else {
+                            reviews = data.data;
+                            resultDiv.innerHTML += '<p><strong>数据格式:</strong> data (其他)</p>';
+                        }
+                        
+                        if (reviews && reviews.length > 0) {
+                            resultDiv.innerHTML += `<p><strong>评价数量:</strong> ${reviews.length}</p>`;
+                            reviews.slice(0, 2).forEach((review, index) => {
+                                resultDiv.innerHTML += `
+                                    <div class="data-item">
+                                        <strong>评价 ${index + 1}:</strong> ${review.venue_name}<br>
+                                        <strong>评分:</strong> ${review.rating}分<br>
+                                        <strong>内容:</strong> ${review.content.substring(0, 50)}...
+                                    </div>
+                                `;
+                            });
+                        } else {
+                            resultDiv.innerHTML += '<p>没有评价记录</p>';
+                        }
+                    } else {
+                        throw new Error(data.message || 'API返回错误');
+                    }
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = `❌ 评价历史加载失败: ${error.message}`;
+                resultDiv.innerHTML = `<p>错误详情: ${error.message}</p>`;
+            }
+        }
+        
+        // 页面加载时自动运行测试
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('开始个人中心API修复测试...');
+            testUserProfileAPI();
+            testUserStatsAPI();
+            testUserBookingsAPI();
+            testUserReviewsAPI();
+        });
+    </script>
+</body>
+</html> 

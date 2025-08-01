@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>显示名称测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-container { max-width: 600px; margin: 0 auto; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .result { margin: 10px 0; padding: 10px; background: #f5f5f5; border-radius: 3px; }
+        .error { background: #ffe6e6; color: #d63031; }
+        .success { background: #e6ffe6; color: #00b894; }
+        .info { background: #e6f3ff; color: #2980b9; }
+        button { padding: 10px 20px; margin: 5px; background: #3498db; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #2980b9; }
+        input { padding: 8px; margin: 5px; border: 1px solid #ddd; border-radius: 3px; width: 200px; }
+        .current-name { font-size: 18px; font-weight: bold; color: #2980b9; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>显示名称更新测试</h1>
+        
+        <div class="test-section">
+            <h2>当前状态</h2>
+            <div id="current-status" class="result">
+                <div class="current-name">当前显示名称: <span id="current-display-name">加载中...</span></div>
+                <div>用户名: <span id="current-username">加载中...</span></div>
+            </div>
+            <button onclick="refreshStatus()">刷新状态</button>
+        </div>
+        
+        <div class="test-section">
+            <h2>更新显示名称</h2>
+            <p>请输入一个新的显示名称（不要与当前名称相同）：</p>
+            <input type="text" id="new-display-name" placeholder="输入新的显示名称" value="测试用户">
+            <button onclick="updateDisplayName()">更新显示名称</button>
+            <div id="update-result" class="result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>快速测试</h2>
+            <p>点击下面的按钮快速测试不同的显示名称：</p>
+            <button onclick="quickTest('用户A')">测试: 用户A</button>
+            <button onclick="quickTest('测试用户')">测试: 测试用户</button>
+            <button onclick="quickTest('新昵称')">测试: 新昵称</button>
+            <button onclick="quickTest('用户' + Date.now())">测试: 时间戳用户</button>
+        </div>
+    </div>
+
+    <script src="api.js"></script>
+    <script>
+        async function refreshStatus() {
+            const statusDiv = document.getElementById('current-status');
+            const displayNameSpan = document.getElementById('current-display-name');
+            const usernameSpan = document.getElementById('current-username');
+            
+            try {
+                const response = await API.users.getUserProfile();
+                const user = response.data;
+                
+                const displayName = user.display_name || user.username || '未设置';
+                const username = user.username || '未设置';
+                
+                displayNameSpan.textContent = displayName;
+                usernameSpan.textContent = username;
+                
+                statusDiv.innerHTML = `
+                    <div class="info">
+                        <div class="current-name">当前显示名称: <span id="current-display-name">${displayName}</span></div>
+                        <div>用户名: <span id="current-username">${username}</span></div>
+                        <div>邮箱: ${user.email || '未设置'}</div>
+                    </div>
+                `;
+                
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="error">获取状态失败: ${error.message}</div>`;
+            }
+        }
+        
+        async function updateDisplayName() {
+            const input = document.getElementById('new-display-name');
+            const newName = input.value.trim();
+            const resultDiv = document.getElementById('update-result');
+            
+            if (!newName) {
+                resultDiv.innerHTML = '<div class="error">请输入显示名称</div>';
+                return;
+            }
+            
+            // 检查是否与当前值相同
+            const currentDisplayName = document.getElementById('current-display-name').textContent;
+            if (newName === currentDisplayName) {
+                resultDiv.innerHTML = '<div class="error">显示名称没有变化！请输入一个不同的名称。</div>';
+                return;
+            }
+            
+            resultDiv.innerHTML = '更新中...';
+            
+            try {
+                console.log('正在更新显示名称:', newName);
+                
+                const response = await API.users.updateUserProfile({
+                    display_name: newName
+                });
+                
+                console.log('API响应:', response);
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <strong>更新成功!</strong><br>
+                        显示名称已更新为: ${newName}
+                    </div>
+                `;
+                
+                // 刷新状态
+                setTimeout(refreshStatus, 1000);
+                
+            } catch (error) {
+                console.error('更新失败:', error);
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <strong>更新失败:</strong> ${error.message}<br>
+                        请尝试输入一个不同的名称。
+                    </div>
+                `;
+            }
+        }
+        
+        async function quickTest(newName) {
+            document.getElementById('new-display-name').value = newName;
+            await updateDisplayName();
+        }
+        
+        // 页面加载时自动刷新状态
+        document.addEventListener('DOMContentLoaded', function() {
+            refreshStatus();
+        });
+    </script>
+</body>
+</html> 

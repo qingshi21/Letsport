@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理员登录 - 体育场馆预约系统</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .admin-login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .admin-login-container h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 2rem;
+        }
+        
+        .admin-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .admin-form input {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        .admin-form button {
+            padding: 12px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .admin-form button:hover {
+            background: #0056b3;
+        }
+        
+        .error-message {
+            color: #dc3545;
+            text-align: center;
+            margin-top: 1rem;
+        }
+        
+        .back-link {
+            text-align: center;
+            margin-top: 1rem;
+        }
+        
+        .back-link a {
+            color: #007bff;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-login-container">
+        <h1>管理员登录</h1>
+        <form class="admin-form" id="adminLoginForm">
+            <input type="text" id="username" placeholder="管理员用户名" required>
+            <input type="password" id="password" placeholder="管理员密码" required>
+            <button type="submit">登录</button>
+        </form>
+        <div id="errorMessage" class="error-message" style="display: none;"></div>
+        <div class="back-link">
+            <a href="index.html">返回首页</a>
+        </div>
+    </div>
+
+    <script src="api.js"></script>
+    <script>
+        document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorMessage = document.getElementById('errorMessage');
+            
+            try {
+                const response = await API.auth.login({username, password});
+                
+                if (response.success) {
+                    // 检查是否是管理员账户
+                    if (username === 'admin') {
+                        // 存储管理员登录状态
+                        localStorage.setItem('adminToken', response.data.token);
+                        localStorage.setItem('adminUser', JSON.stringify(response.data.user));
+                        
+                        // 跳转到管理员仪表板
+                        window.location.href = 'admin-dashboard.html';
+                    } else {
+                        errorMessage.textContent = '您没有管理员权限';
+                        errorMessage.style.display = 'block';
+                    }
+                } else {
+                    errorMessage.textContent = response.message || '登录失败';
+                    errorMessage.style.display = 'block';
+                }
+            } catch (error) {
+                errorMessage.textContent = '登录失败，请检查网络连接';
+                errorMessage.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录状态调试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .debug-info {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .debug-info h2 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        .debug-info p {
+            margin: 10px 0;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        .status-logged-in {
+            background: #d4edda !important;
+            color: #155724;
+        }
+        .status-logged-out {
+            background: #f8d7da !important;
+            color: #721c24;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .danger {
+            background: #dc3545;
+        }
+        .danger:hover {
+            background: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-info">
+        <h2>登录状态调试信息</h2>
+        <p id="login-status">检查中...</p>
+        <p id="token-info">检查中...</p>
+        <p id="user-info">检查中...</p>
+    </div>
+
+    <div class="debug-info">
+        <h2>操作按钮</h2>
+        <button onclick="checkLoginStatus()">检查登录状态</button>
+        <button onclick="clearToken()">清除Token</button>
+        <button onclick="testLoginModal()">测试登录弹窗</button>
+        <button onclick="goToVenues()">前往场馆页面</button>
+        <button onclick="goToHome()">前往首页</button>
+    </div>
+
+    <div class="debug-info">
+        <h2>控制台输出</h2>
+        <div id="console-output" style="background: #000; color: #0f0; padding: 10px; border-radius: 4px; font-family: monospace; height: 200px; overflow-y: auto;"></div>
+    </div>
+
+    <script src="api.js"></script>
+    <script>
+        // 重写console.log来显示在页面上
+        const originalLog = console.log;
+        const consoleOutput = document.getElementById('console-output');
+
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            const message = args.map(arg =>
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' ');
+            consoleOutput.innerHTML += `<div>[${new Date().toLocaleTimeString()}] ${message}</div>`;
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        };
+
+        function checkLoginStatus() {
+            const isLoggedIn = API.utils.isLoggedIn();
+            const token = API.utils.getToken();
+
+            document.getElementById('login-status').textContent = `登录状态: ${isLoggedIn ? '已登录' : '未登录'}`;
+            document.getElementById('login-status').className = isLoggedIn ? 'status-logged-in' : 'status-logged-out';
+
+            document.getElementById('token-info').textContent = `Token: ${token ? token.substring(0, 20) + '...' : '无'}`;
+
+            console.log('登录状态检查:', { isLoggedIn, hasToken: !!token });
+
+            if (isLoggedIn) {
+                // 尝试获取用户信息
+                API.auth.getCurrentUser().then(response => {
+                    document.getElementById('user-info').textContent = `用户信息: ${JSON.stringify(response.data, null, 2)}`;
+                    console.log('用户信息:', response.data);
+                }).catch(error => {
+                    document.getElementById('user-info').textContent = `获取用户信息失败: ${error.message}`;
+                    console.log('获取用户信息失败:', error);
+                });
+            } else {
+                document.getElementById('user-info').textContent = '用户信息: 未登录';
+            }
+        }
+
+        function clearToken() {
+            API.utils.clearToken();
+            console.log('Token已清除');
+            checkLoginStatus();
+        }
+
+        function testLoginModal() {
+            console.log('测试登录弹窗');
+            if (typeof openLoginModal === 'function') {
+                openLoginModal();
+            } else {
+                console.log('openLoginModal函数不存在');
+            }
+        }
+
+        function goToVenues() {
+            window.location.href = 'venues.html';
+        }
+
+        function goToHome() {
+            window.location.href = 'index.html';
+        }
+
+        // 页面加载时检查状态
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('调试页面加载完成');
+            checkLoginStatus();
+        });
+    </script>
+</body>
+</html> 

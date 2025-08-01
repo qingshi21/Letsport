@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>显示名称更新调试</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .debug-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .result { margin: 10px 0; padding: 10px; background: #f5f5f5; border-radius: 3px; }
+        .error { background: #ffe6e6; color: #d63031; }
+        .success { background: #e6ffe6; color: #00b894; }
+        .info { background: #e6f3ff; color: #2980b9; }
+        button { padding: 10px 20px; margin: 5px; background: #3498db; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #2980b9; }
+        input { padding: 8px; margin: 5px; border: 1px solid #ddd; border-radius: 3px; width: 200px; }
+    </style>
+</head>
+<body>
+    <h1>显示名称更新调试</h1>
+    
+    <div class="debug-section">
+        <h2>当前状态</h2>
+        <button onclick="checkCurrentState()">检查当前状态</button>
+        <div id="current-state" class="result"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>测试更新</h2>
+        <input type="text" id="test-name" placeholder="输入新的显示名称" value="测试名称">
+        <button onclick="testUpdate()">测试更新</button>
+        <div id="test-result" class="result"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>API调用详情</h2>
+        <button onclick="testAPICall()">测试API调用</button>
+        <div id="api-details" class="result"></div>
+    </div>
+
+    <script src="api.js"></script>
+    <script>
+        async function checkCurrentState() {
+            const stateDiv = document.getElementById('current-state');
+            stateDiv.innerHTML = '检查中...';
+            
+            try {
+                // 检查登录状态
+                const isLoggedIn = API.utils.isLoggedIn();
+                const token = API.utils.getToken();
+                
+                // 获取用户资料
+                const response = await API.users.getUserProfile();
+                const user = response.data;
+                
+                stateDiv.innerHTML = `
+                    <div class="info">
+                        <strong>登录状态:</strong> ${isLoggedIn ? '已登录' : '未登录'}<br>
+                        <strong>Token:</strong> ${token ? token.substring(0, 20) + '...' : '无'}<br>
+                        <strong>用户名:</strong> ${user.username || '未设置'}<br>
+                        <strong>当前显示名称:</strong> ${user.display_name || '未设置'}<br>
+                        <strong>邮箱:</strong> ${user.email || '未设置'}<br>
+                        <strong>完整用户数据:</strong><br>
+                        <pre>${JSON.stringify(user, null, 2)}</pre>
+                    </div>
+                `;
+            } catch (error) {
+                stateDiv.innerHTML = `<div class="error">检查失败: ${error.message}</div>`;
+            }
+        }
+        
+        async function testUpdate() {
+            const input = document.getElementById('test-name');
+            const newName = input.value.trim();
+            const resultDiv = document.getElementById('test-result');
+            
+            if (!newName) {
+                resultDiv.innerHTML = '<div class="error">请输入显示名称</div>';
+                return;
+            }
+            
+            resultDiv.innerHTML = '测试中...';
+            
+            try {
+                console.log('=== 开始测试更新 ===');
+                console.log('新显示名称:', newName);
+                
+                // 构建请求数据
+                const requestData = {
+                    display_name: newName
+                };
+                
+                console.log('请求数据:', requestData);
+                
+                // 调用API
+                const response = await API.users.updateUserProfile(requestData);
+                
+                console.log('API响应:', response);
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <strong>更新成功!</strong><br>
+                        <strong>请求数据:</strong> ${JSON.stringify(requestData)}<br>
+                        <strong>响应数据:</strong> ${JSON.stringify(response)}
+                    </div>
+                `;
+                
+                // 重新检查状态
+                setTimeout(checkCurrentState, 1000);
+                
+            } catch (error) {
+                console.error('更新失败:', error);
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <strong>更新失败:</strong> ${error.message}<br>
+                        <strong>错误详情:</strong> ${JSON.stringify(error)}
+                    </div>
+                `;
+            }
+        }
+        
+        async function testAPICall() {
+            const detailsDiv = document.getElementById('api-details');
+            detailsDiv.innerHTML = '测试中...';
+            
+            try {
+                // 模拟API调用
+                const testData = {
+                    display_name: '测试名称_' + Date.now()
+                };
+                
+                console.log('测试API调用数据:', testData);
+                
+                const response = await API.users.updateUserProfile(testData);
+                
+                detailsDiv.innerHTML = `
+                    <div class="success">
+                        <strong>API调用成功!</strong><br>
+                        <strong>测试数据:</strong> ${JSON.stringify(testData)}<br>
+                        <strong>响应:</strong> ${JSON.stringify(response)}
+                    </div>
+                `;
+                
+            } catch (error) {
+                detailsDiv.innerHTML = `
+                    <div class="error">
+                        <strong>API调用失败:</strong> ${error.message}<br>
+                        <strong>错误堆栈:</strong> ${error.stack}
+                    </div>
+                `;
+            }
+        }
+        
+        // 页面加载时自动检查状态
+        document.addEventListener('DOMContentLoaded', function() {
+            checkCurrentState();
+        });
+    </script>
+</body>
+</html> 
